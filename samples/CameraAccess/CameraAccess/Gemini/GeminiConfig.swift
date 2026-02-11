@@ -29,6 +29,8 @@ enum GeminiConfig {
 
     Be detailed in your task description. Include all relevant context: names, content, platforms, quantities, etc. The assistant works better with complete information.
 
+    IMPORTANT: When making follow-up requests related to a previous action, reference the prior context. For example, if you already asked to open Amazon and now the user wants to search for something, say "On the Amazon page already open in the browser, search for Diet Coke" instead of just "Search Amazon for Diet Coke". This helps the assistant reuse existing browser tabs instead of opening redundant new ones.
+
     NEVER pretend to do these things yourself.
 
     IMPORTANT: Before calling execute, ALWAYS speak a brief acknowledgment first. For example:

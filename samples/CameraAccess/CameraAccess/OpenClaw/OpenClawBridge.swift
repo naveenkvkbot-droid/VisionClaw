@@ -15,6 +15,8 @@ class OpenClawBridge: ObservableObject {
   private let session: URLSession
   private let pingSession: URLSession
   private var sessionKey: String
+  private var conversationHistory: [[String: String]] = []
+  private let maxHistoryTurns = 10
 
   init() {
     let config = URLSessionConfiguration.default
@@ -57,6 +59,7 @@ class OpenClawBridge: ObservableObject {
 
   func resetSession() {
     sessionKey = OpenClawBridge.newSessionKey()
+    conversationHistory = []
     NSLog("[OpenClaw] New session: %@", sessionKey)
   }
 
@@ -78,6 +81,14 @@ class OpenClawBridge: ObservableObject {
       return .failure("Invalid gateway URL")
     }
 
+    // Append the new user message to conversation history
+    conversationHistory.append(["role": "user", "content": task])
+
+    // Trim history to keep only the most recent turns (user+assistant pairs)
+    if conversationHistory.count > maxHistoryTurns * 2 {
+      conversationHistory = Array(conversationHistory.suffix(maxHistoryTurns * 2))
+    }
+
     var request = URLRequest(url: url)
     request.httpMethod = "POST"
     request.setValue("Bearer \(GeminiConfig.openClawGatewayToken)", forHTTPHeaderField: "Authorization")
@@ -86,11 +97,11 @@ class OpenClawBridge: ObservableObject {
 
     let body: [String: Any] = [
       "model": "openclaw",
-      "messages": [
-        ["role": "user", "content": task]
-      ],
+      "messages": conversationHistory,
       "stream": false
     ]
+
+    NSLog("[OpenClaw] Sending %d messages in conversation", conversationHistory.count)
 
     do {
       request.httpBody = try JSONSerialization.data(withJSONObject: body)
@@ -110,12 +121,15 @@ class OpenClawBridge: ObservableObject {
          let first = choices.first,
          let message = first["message"] as? [String: Any],
          let content = message["content"] as? String {
+        // Append assistant response to history for continuity
+        conversationHistory.append(["role": "assistant", "content": content])
         NSLog("[OpenClaw] Agent result: %@", String(content.prefix(200)))
         lastToolCallStatus = .completed(toolName)
         return .success(content)
       }
 
       let raw = String(data: data, encoding: .utf8) ?? "OK"
+      conversationHistory.append(["role": "assistant", "content": raw])
       NSLog("[OpenClaw] Agent raw: %@", String(raw.prefix(200)))
       lastToolCallStatus = .completed(toolName)
       return .success(raw)
