@@ -36,20 +36,21 @@ class OpenClawBridge: ObservableObject {
       return
     }
     connectionState = .checking
-    guard let url = URL(string: "\(GeminiConfig.openClawHost):\(GeminiConfig.openClawPort)/v1/chat/completions") else {
+    guard let url = URL(string: "\(GeminiConfig.openClawHost):\(GeminiConfig.openClawPort)/health") else {
       connectionState = .unreachable("Invalid URL")
       return
     }
     var request = URLRequest(url: url)
     request.httpMethod = "GET"
-    request.setValue("Bearer \(GeminiConfig.openClawGatewayToken)", forHTTPHeaderField: "Authorization")
     do {
       let (_, response) = try await pingSession.data(for: request)
-      if let http = response as? HTTPURLResponse, (200...499).contains(http.statusCode) {
+      if let http = response as? HTTPURLResponse, http.statusCode == 200 {
         connectionState = .connected
         NSLog("[OpenClaw] Gateway reachable (HTTP %d)", http.statusCode)
       } else {
-        connectionState = .unreachable("Unexpected response")
+        let code = (response as? HTTPURLResponse)?.statusCode ?? 0
+        connectionState = .unreachable("HTTP \(code)")
+        NSLog("[OpenClaw] Gateway returned HTTP %d", code)
       }
     } catch {
       connectionState = .unreachable(error.localizedDescription)
