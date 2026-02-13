@@ -10,3 +10,7 @@ CameraAccess/Secrets.swift
 
 # Xcode workspace metadata
 *.xcworkspace/
+
+# Node server
+server/node_modules/
+server/package-lock.json
