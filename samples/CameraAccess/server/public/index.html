@@ -97,6 +97,7 @@
 
   <script>
     let ws, pc, localStream;
+    let pendingCandidates = [];
     const wsProtocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
     const wsUrl = `${wsProtocol}//${location.host}`;
 
@@ -140,22 +141,33 @@
 
         case 'offer':
           document.getElementById('waiting-msg').style.display = 'none';
+          pendingCandidates = [];
           await setupPeerConnection();
           await pc.setRemoteDescription({ type: 'offer', sdp: msg.sdp });
+          // Flush any candidates that arrived during setup
+          for (const c of pendingCandidates) {
+            await pc.addIceCandidate(c);
+          }
+          console.log('Flushed', pendingCandidates.length, 'buffered candidates');
+          pendingCandidates = [];
           const answer = await pc.createAnswer();
           await pc.setLocalDescription(answer);
           ws.send(JSON.stringify({ type: 'answer', sdp: answer.sdp }));
           break;
 
-        case 'candidate':
+        case 'candidate': {
+          const candidate = {
+            candidate: msg.candidate,
+            sdpMid: msg.sdpMid,
+            sdpMLineIndex: msg.sdpMLineIndex
+          };
           if (pc && pc.remoteDescription) {
-            await pc.addIceCandidate({
-              candidate: msg.candidate,
-              sdpMid: msg.sdpMid,
-              sdpMLineIndex: msg.sdpMLineIndex
-            });
+            await pc.addIceCandidate(candidate);
+          } else {
+            pendingCandidates.push(candidate);
           }
           break;
+        }
 
         case 'peer_left':
           if (pc) { pc.close(); pc = null; }
