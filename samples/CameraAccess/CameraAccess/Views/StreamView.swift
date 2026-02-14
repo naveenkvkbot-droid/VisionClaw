@@ -29,8 +29,14 @@ struct StreamView: View {
       Color.black
         .edgesIgnoringSafeArea(.all)
 
-      // Video backdrop
-      if let videoFrame = viewModel.currentVideoFrame, viewModel.hasReceivedFirstFrame {
+      // Video backdrop: PiP when WebRTC connected, otherwise single local feed
+      if webrtcVM.isActive && webrtcVM.connectionState == .connected {
+        PiPVideoView(
+          localFrame: viewModel.currentVideoFrame,
+          remoteVideoTrack: webrtcVM.remoteVideoTrack,
+          hasRemoteVideo: webrtcVM.hasRemoteVideo
+        )
+      } else if let videoFrame = viewModel.currentVideoFrame, viewModel.hasReceivedFirstFrame {
         GeometryReader { geometry in
           Image(uiImage: videoFrame)
             .resizable()

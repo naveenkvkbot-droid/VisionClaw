@@ -19,6 +19,8 @@ class WebRTCSessionViewModel: ObservableObject {
   @Published var roomCode: String = ""
   @Published var isMuted: Bool = false
   @Published var errorMessage: String?
+  @Published var remoteVideoTrack: RTCVideoTrack?
+  @Published var hasRemoteVideo: Bool = false
 
   private var webRTCClient: WebRTCClient?
   private var signalingClient: SignalingClient?
@@ -88,6 +90,8 @@ class WebRTCSessionViewModel: ObservableObject {
     connectionState = .disconnected
     roomCode = ""
     isMuted = false
+    remoteVideoTrack = nil
+    hasRemoteVideo = false
   }
 
   func toggleMute() {
@@ -163,6 +167,18 @@ class WebRTCSessionViewModel: ObservableObject {
   fileprivate func handleGeneratedCandidate(_ candidate: RTCIceCandidate) {
     signalingClient?.send(candidate: candidate)
   }
+
+  fileprivate func handleRemoteVideoTrackReceived(_ track: RTCVideoTrack) {
+    remoteVideoTrack = track
+    hasRemoteVideo = true
+    NSLog("[WebRTC] Remote video track received")
+  }
+
+  fileprivate func handleRemoteVideoTrackRemoved(_ track: RTCVideoTrack) {
+    remoteVideoTrack = nil
+    hasRemoteVideo = false
+    NSLog("[WebRTC] Remote video track removed")
+  }
 }
 
 // MARK: - Delegate Adapter (bridges nonisolated delegate to @MainActor ViewModel)
@@ -183,6 +199,18 @@ private class WebRTCDelegateAdapter: WebRTCClientDelegate {
   func webRTCClient(_ client: WebRTCClient, didGenerateCandidate candidate: RTCIceCandidate) {
     Task { @MainActor [weak self] in
       self?.viewModel?.handleGeneratedCandidate(candidate)
+    }
+  }
+
+  func webRTCClient(_ client: WebRTCClient, didReceiveRemoteVideoTrack track: RTCVideoTrack) {
+    Task { @MainActor [weak self] in
+      self?.viewModel?.handleRemoteVideoTrackReceived(track)
+    }
+  }
+
+  func webRTCClient(_ client: WebRTCClient, didRemoveRemoteVideoTrack track: RTCVideoTrack) {
+    Task { @MainActor [weak self] in
+      self?.viewModel?.handleRemoteVideoTrackRemoved(track)
     }
   }
 }

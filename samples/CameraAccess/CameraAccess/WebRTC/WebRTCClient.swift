@@ -4,6 +4,8 @@ import WebRTC
 protocol WebRTCClientDelegate: AnyObject {
   func webRTCClient(_ client: WebRTCClient, didChangeConnectionState state: RTCIceConnectionState)
   func webRTCClient(_ client: WebRTCClient, didGenerateCandidate candidate: RTCIceCandidate)
+  func webRTCClient(_ client: WebRTCClient, didReceiveRemoteVideoTrack track: RTCVideoTrack)
+  func webRTCClient(_ client: WebRTCClient, didRemoveRemoteVideoTrack track: RTCVideoTrack)
 }
 
 /// Manages RTCPeerConnection, video/audio tracks, and SDP negotiation.
@@ -17,6 +19,7 @@ class WebRTCClient: NSObject {
   private var videoCapturer: CustomVideoCapturer!
   private var localVideoTrack: RTCVideoTrack?
   private var localAudioTrack: RTCAudioTrack?
+  private(set) var remoteVideoTrack: RTCVideoTrack?
 
   override init() {
     RTCInitializeSSL()
@@ -76,7 +79,7 @@ class WebRTCClient: NSObject {
     let constraints = RTCMediaConstraints(
       mandatoryConstraints: [
         "OfferToReceiveAudio": "true",
-        "OfferToReceiveVideo": "false",
+        "OfferToReceiveVideo": "true",
       ],
       optionalConstraints: nil
     )
@@ -111,6 +114,7 @@ class WebRTCClient: NSObject {
   func close() {
     localVideoTrack?.isEnabled = false
     localAudioTrack?.isEnabled = false
+    remoteVideoTrack = nil
     peerConnection?.close()
     peerConnection = nil
     NSLog("[WebRTC] Peer connection closed")
@@ -159,10 +163,20 @@ extension WebRTCClient: RTCPeerConnectionDelegate {
   }
 
   func peerConnection(_ peerConnection: RTCPeerConnection, didAdd stream: RTCMediaStream) {
-    NSLog("[WebRTC] Remote stream added with %d audio tracks", stream.audioTracks.count)
+    NSLog("[WebRTC] Remote stream added with %d audio tracks, %d video tracks",
+          stream.audioTracks.count, stream.videoTracks.count)
+    if let videoTrack = stream.videoTracks.first {
+      remoteVideoTrack = videoTrack
+      delegate?.webRTCClient(self, didReceiveRemoteVideoTrack: videoTrack)
+    }
   }
 
   func peerConnection(_ peerConnection: RTCPeerConnection, didRemove stream: RTCMediaStream) {
+    NSLog("[WebRTC] Remote stream removed")
+    if let track = remoteVideoTrack {
+      remoteVideoTrack = nil
+      delegate?.webRTCClient(self, didRemoveRemoteVideoTrack: track)
+    }
   }
 
   func peerConnectionShouldNegotiate(_ peerConnection: RTCPeerConnection) {
