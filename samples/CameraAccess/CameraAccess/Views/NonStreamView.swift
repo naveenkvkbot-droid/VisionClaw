@@ -13,6 +13,7 @@
 // Initiates streaming
 //
 
+import MWDATCamera
 import MWDATCore
 import SwiftUI
 
@@ -20,6 +21,7 @@ struct NonStreamView: View {
   @ObservedObject var viewModel: StreamSessionViewModel
   @ObservedObject var wearablesVM: WearablesViewModel
   @State private var sheetHeight: CGFloat = 300
+  @State private var showSettings = false
 
   var body: some View {
     ZStack {
@@ -29,6 +31,9 @@ struct NonStreamView: View {
         HStack {
           Spacer()
           Menu {
+            Button("Settings") {
+              showSettings = true
+            }
             Button("Disconnect", role: .destructive) {
               wearablesVM.disconnectGlasses()
             }
@@ -79,6 +84,26 @@ struct NonStreamView: View {
         .padding(.bottom, 12)
         .opacity(viewModel.hasActiveDevice ? 0 : 1)
 
+        // Resolution picker (glasses mode only)
+        VStack(spacing: 4) {
+          Text("Resolution")
+            .font(.system(size: 13))
+            .foregroundColor(.white.opacity(0.6))
+          Picker("Resolution", selection: Binding(
+            get: { viewModel.selectedResolution },
+            set: { viewModel.updateResolution($0) }
+          )) {
+            Text("Low").tag(StreamingResolution.low)
+            Text("Med").tag(StreamingResolution.medium)
+            Text("High").tag(StreamingResolution.high)
+          }
+          .pickerStyle(.segmented)
+          Text(viewModel.resolutionLabel)
+            .font(.system(size: 12, design: .monospaced))
+            .foregroundColor(.white.opacity(0.4))
+        }
+        .padding(.bottom, 12)
+
         CustomButton(
           title: "Start on iPhone",
           style: .secondary,
@@ -100,6 +125,9 @@ struct NonStreamView: View {
         }
       }
       .padding(.all, 24)
+    }
+    .sheet(isPresented: $showSettings) {
+      SettingsView()
     }
     .sheet(isPresented: $wearablesVM.showGettingStartedSheet) {
       if #available(iOS 16.0, *) {

@@ -54,7 +54,7 @@ class IPhoneCameraManager: NSObject {
       captureSession.addOutput(videoOutput)
     }
 
-    // Fix orientation to portrait
+    // Force portrait-oriented frames from the sensor
     if let connection = videoOutput.connection(with: .video) {
       if connection.isVideoRotationAngleSupported(90) {
         connection.videoRotationAngle = 90

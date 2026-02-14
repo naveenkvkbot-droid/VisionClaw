@@ -29,6 +29,7 @@ class WearablesViewModel: ObservableObject {
   @Published var showGettingStartedSheet: Bool = false
   @Published var showError: Bool = false
   @Published var errorMessage: String = ""
+  @Published var skipToIPhoneMode: Bool = false
 
   private var registrationTask: Task<Void, Never>?
   private var deviceStreamTask: Task<Void, Never>?
