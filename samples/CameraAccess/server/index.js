@@ -10,35 +10,42 @@ const rooms = new Map(); // roomCode -> { creator: ws, viewer: ws, destroyTimer:
 // Allows the iOS user to switch apps (e.g. copy room code, send via WhatsApp) and come back.
 const ROOM_GRACE_PERIOD_MS = 60_000;
 
-// TURN: fetch from Cloudflare (caches for 20 min)
-let turnCache = { data: null, expires: 0 };
-
-async function fetchTurnCredentials() {
-  if (turnCache.data && Date.now() < turnCache.expires) {
-    return turnCache.data;
-  }
-  try {
-    const resp = await fetch("https://speed.cloudflare.com/turn-creds");
-    const creds = await resp.json();
-    turnCache = { data: creds, expires: Date.now() + 20 * 60 * 1000 };
-    console.log("[TURN] Fetched Cloudflare credentials:", JSON.stringify(creds.urls));
-    return creds;
-  } catch (err) {
-    console.log("[TURN] Failed to fetch:", err.message);
-    return null;
-  }
+// TURN: static credentials from free relay services (no API calls needed)
+// Open Relay Project (metered.ca) - 20GB free/month, ports 80/443 for firewall bypass
+// Freestun.net - additional free TURN fallback
+function getTurnCredentials() {
+  return {
+    iceServers: [
+      {
+        urls: [
+          "stun:openrelay.metered.ca:80",
+          "turn:openrelay.metered.ca:80",
+          "turn:openrelay.metered.ca:80?transport=tcp",
+          "turn:openrelay.metered.ca:443",
+          "turns:openrelay.metered.ca:443?transport=tcp",
+        ],
+        username: "openrelayproject",
+        credential: "openrelayproject",
+      },
+      {
+        urls: ["turn:freestun.net:3478"],
+        username: "free",
+        credential: "free",
+      },
+    ],
+  };
 }
 
 // HTTP server for serving the web viewer
-const httpServer = http.createServer(async (req, res) => {
+const httpServer = http.createServer((req, res) => {
   // TURN credentials API endpoint
   if (req.url === "/api/turn") {
-    const creds = await fetchTurnCredentials();
+    const creds = getTurnCredentials();
     res.writeHead(200, {
       "Content-Type": "application/json",
       "Access-Control-Allow-Origin": "*",
     });
-    res.end(JSON.stringify(creds || {}));
+    res.end(JSON.stringify(creds));
     return;
   }
 
