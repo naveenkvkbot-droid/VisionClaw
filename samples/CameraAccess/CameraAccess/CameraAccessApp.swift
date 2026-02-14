@@ -43,6 +43,10 @@ struct CameraAccessApp: App {
     let wearables = Wearables.shared
     self.wearables = wearables
     self._wearablesViewModel = StateObject(wrappedValue: WearablesViewModel(wearables: wearables))
+    
+    // Initialize background location manager
+    // This will request permission and start location monitoring
+    BackgroundLocationManager.shared.requestAlwaysPermission()
   }
 
   var body: some Scene {

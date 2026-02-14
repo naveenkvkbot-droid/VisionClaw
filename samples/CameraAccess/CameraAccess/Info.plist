@@ -54,6 +54,9 @@
 	<array>
 		<string>bluetooth-peripheral</string>
 		<string>external-accessory</string>
+		<string>location</string>
+		<string>fetch</string>
+		<string>processing</string>
 	</array>
 	<key>NSBluetoothAlwaysUsageDescription</key>
 	<string>Needed to connect to Meta AI Glasses</string>
@@ -66,6 +69,10 @@
 	<string>This app uses the camera for iPhone testing mode, allowing you to test the AI assistant pipeline without glasses.</string>
 	<key>NSMicrophoneUsageDescription</key>
 	<string>This app uses the microphone to have voice conversations with the AI assistant while streaming from your glasses.</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>VisionClaw needs your location for AI assistance</string>
+	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+	<string>VisionClaw needs background location access to send location updates to AI even when app is closed</string>
 	<key>NSPhotoLibraryAddUsageDescription</key>
 	<string>This app needs access to save photos captured from your glasses.</string>
 	<key>NSAppTransportSecurity</key>
