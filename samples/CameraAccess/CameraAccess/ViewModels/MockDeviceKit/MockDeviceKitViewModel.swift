@@ -14,7 +14,7 @@
 // streaming, photo capture, and device management workflows without physical hardware.
 //
 
-#if DEBUG
+#if canImport(MWDATMockDevice)
 
 import Foundation
 import MWDATMockDevice

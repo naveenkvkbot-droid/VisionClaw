@@ -17,7 +17,6 @@
 		8FD96B8D2E6F0A9800F56AB1 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 8FD96B772E6F0A9800F56AB1 /* Assets.xcassets */; };
 		8FD96B952E6F0F7D00F56AB1 /* MWDATCore in Frameworks */ = {isa = PBXBuildFile; productRef = 8FD96B942E6F0F7D00F56AB1 /* MWDATCore */; };
 		8FD96B952E6F0F7D00F56AB2 /* MWDATCamera in Frameworks */ = {isa = PBXBuildFile; productRef = 8FD96B942E6F0F7D00F56AB2 /* MWDATCamera */; };
-		8FD96B952E6F0F7D00F56AB3 /* MWDATMockDevice in Frameworks */ = {isa = PBXBuildFile; productRef = 8FD96B942E6F0F7D00F56AB3 /* MWDATMockDevice */; };
 		8FFD5FF52E8422580035E446 /* CircleButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8FFD5FF22E8422580035E446 /* CircleButton.swift */; };
 		8FFD5FF62E8422580035E446 /* CustomButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8FFD5FF32E8422580035E446 /* CustomButton.swift */; };
 		8FFD602C2E8433E20035E446 /* MockDeviceKitViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8FFD60292E8433E20035E446 /* MockDeviceKitViewModel.swift */; };
@@ -28,7 +27,6 @@
 		8FFD60602E84A2F70035E446 /* MainAppView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8FFD605F2E84A2F70035E446 /* MainAppView.swift */; };
 		8FFD60612E84A2F70035E446 /* DebugMenuView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8FFD605E2E84A2F70035E446 /* DebugMenuView.swift */; };
 		9DD6CAAF2F3C426600ED7098 /* Secrets.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9DD6CAAD2F3C426600ED7098 /* Secrets.swift */; };
-
 		A1B2C3D42F0A000200000001 /* GeminiConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D42F0A000100000001 /* GeminiConfig.swift */; };
 		A1B2C3D42F0A000200000002 /* GeminiLiveService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D42F0A000100000002 /* GeminiLiveService.swift */; };
 		A1B2C3D42F0A000200000003 /* AudioManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D42F0A000100000003 /* AudioManager.swift */; };
@@ -115,7 +113,6 @@
 			files = (
 				8FD96B952E6F0F7D00F56AB1 /* MWDATCore in Frameworks */,
 				8FD96B952E6F0F7D00F56AB2 /* MWDATCamera in Frameworks */,
-				8FD96B952E6F0F7D00F56AB3 /* MWDATMockDevice in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -352,7 +349,6 @@
 				8F2D23802E856711002D0588 /* DebugMenuViewModel.swift in Sources */,
 				8FFD60542E849D0D0035E446 /* RegistrationView.swift in Sources */,
 				9DD6CAAF2F3C426600ED7098 /* Secrets.swift in Sources */,
-
 				8FFD60342E8434070035E446 /* MediaPickerView.swift in Sources */,
 				8FFD60352E8434070035E446 /* StatusText.swift in Sources */,
 				8FFD602C2E8433E20035E446 /* MockDeviceKitViewModel.swift in Sources */,
@@ -406,7 +402,7 @@
 				CODE_SIGN_ENTITLEMENTS = CameraAccess/CameraAccess.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 2;
 				DEVELOPMENT_ASSET_PATHS = "";
 				DEVELOPMENT_TEAM = WY253UX7FC;
 				ENABLE_PREVIEWS = YES;
@@ -418,7 +414,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.meta.wearables.external.CameraAccess;
+				PRODUCT_BUNDLE_IDENTIFIER = com.xiaoanliu.VisionClaw;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SWIFT_VERSION = 5.0;
@@ -435,7 +431,7 @@
 				CODE_SIGN_ENTITLEMENTS = CameraAccess/CameraAccess.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 2;
 				DEVELOPMENT_ASSET_PATHS = "";
 				DEVELOPMENT_TEAM = WY253UX7FC;
 				ENABLE_PREVIEWS = YES;
@@ -446,7 +442,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.meta.wearables.external.CameraAccess;
+				PRODUCT_BUNDLE_IDENTIFIER = com.xiaoanliu.VisionClaw;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SWIFT_VERSION = 5.0;
@@ -461,7 +457,7 @@
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
 				CODE_SIGN_STYLE = Manual;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 2;
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu17;
 				GENERATE_INFOPLIST_FILE = YES;
@@ -490,7 +486,7 @@
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
 				CODE_SIGN_STYLE = Manual;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 2;
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu17;
 				GENERATE_INFOPLIST_FILE = YES;
@@ -680,11 +676,6 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 95F7F3332DEF0D91006D1C1A /* XCRemoteSwiftPackageReference "meta-wearables-dat-ios" */;
 			productName = MWDATCamera;
-		};
-		8FD96B942E6F0F7D00F56AB3 /* MWDATMockDevice */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = 95F7F3332DEF0D91006D1C1A /* XCRemoteSwiftPackageReference "meta-wearables-dat-ios" */;
-			productName = MWDATMockDevice;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

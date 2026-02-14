@@ -14,7 +14,7 @@
 // and media content (camera feeds and captured images).
 //
 
-#if DEBUG
+#if canImport(MWDATMockDevice)
 
 import Foundation
 import MWDATMockDevice

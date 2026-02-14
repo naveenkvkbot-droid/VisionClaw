@@ -97,3 +97,4 @@ iOSInjectionProject/
 # OpenClaw specific
 *.env
 config.local.json
+.DS_Store

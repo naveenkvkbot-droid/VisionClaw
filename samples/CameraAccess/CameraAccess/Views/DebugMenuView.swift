@@ -14,7 +14,7 @@
 // without requiring physical Meta wearable devices.
 //
 
-#if DEBUG
+#if canImport(MWDATMockDevice)
 
 import SwiftUI
 

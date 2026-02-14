@@ -19,13 +19,13 @@ import Foundation
 import MWDATCore
 import SwiftUI
 
-#if DEBUG
+#if canImport(MWDATMockDevice)
 import MWDATMockDevice
 #endif
 
 @main
 struct CameraAccessApp: App {
-  #if DEBUG
+  #if canImport(MWDATMockDevice)
   // Debug menu for simulating device connections during development
   @StateObject private var debugMenuViewModel = DebugMenuViewModel(mockDeviceKit: MockDeviceKit.shared)
   #endif
@@ -58,7 +58,7 @@ struct CameraAccessApp: App {
         } message: {
           Text(wearablesViewModel.errorMessage)
         }
-        #if DEBUG
+        #if canImport(MWDATMockDevice)
       .sheet(isPresented: $debugMenuViewModel.showDebugMenu) {
         MockDeviceKitView(viewModel: debugMenuViewModel.mockDeviceKitViewModel)
       }

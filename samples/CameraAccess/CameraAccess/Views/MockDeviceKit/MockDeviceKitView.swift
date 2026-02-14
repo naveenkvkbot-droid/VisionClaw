@@ -14,7 +14,7 @@
 // without requiring physical Meta hardware.
 //
 
-#if DEBUG
+#if canImport(MWDATMockDevice)
 
 import Foundation
 import SwiftUI

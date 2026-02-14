@@ -17,7 +17,7 @@
 import MWDATCore
 import SwiftUI
 
-#if DEBUG
+#if canImport(MWDATMockDevice)
 import MWDATMockDevice
 #endif
 
@@ -72,7 +72,7 @@ class WearablesViewModel: ObservableObject {
     deviceStreamTask = Task {
       for await devices in wearables.devicesStream() {
         self.devices = devices
-        #if DEBUG
+        #if canImport(MWDATMockDevice)
         self.hasMockDevice = !MockDeviceKit.shared.pairedDevices.isEmpty
         #endif
         // Monitor compatibility for each device
