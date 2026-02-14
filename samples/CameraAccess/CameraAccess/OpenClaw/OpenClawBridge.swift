@@ -69,6 +69,87 @@ class OpenClawBridge: ObservableObject {
     return "agent:main:glass:\(ts)"
   }
 
+  // MARK: - LinkedIn Profile Finder
+  
+  /// Check if task is a LinkedIn search request and handle it
+  private func handleLinkedInRequest(_ task: String) -> ToolResult? {
+    let lowerTask = task.lowercased()
+    
+    // Check for LinkedIn-related keywords
+    let linkedInPatterns = [
+      "find linkedin",
+      "get linkedin",
+      "search linkedin",
+      "linkedin profile",
+      "linkedin for",
+      "find.*linkedin",
+      "linkedin.*profile"
+    ]
+    
+    let isLinkedInRequest = linkedInPatterns.contains { pattern in
+      lowerTask.range(of: pattern, options: .regularExpression) != nil
+    }
+    
+    guard isLinkedInRequest else { return nil }
+    
+    // Extract name - remove common keywords
+    var name = task
+      .replacingOccurrences(of: "find linkedin for", with: "", options: .caseInsensitive)
+      .replacingOccurrences(of: "find linkedin profile for", with: "", options: .caseInsensitive)
+      .replacingOccurrences(of: "get linkedin of", with: "", options: .caseInsensitive)
+      .replacingOccurrences(of: "get linkedin for", with: "", options: .caseInsensitive)
+      .replacingOccurrences(of: "search linkedin for", with: "", options: .caseInsensitive)
+      .replacingOccurrences(of: "linkedin profile for", with: "", options: .caseInsensitive)
+      .replacingOccurrences(of: "linkedin for", with: "", options: .caseInsensitive)
+      .replacingOccurrences(of: "linkedin", with: "", options: .caseInsensitive)
+      .replacingOccurrences(of: "profile", with: "", options: .caseInsensitive)
+      .trimmingCharacters(in: .whitespacesAndPunctuation)
+    
+    guard !name.isEmpty else { return nil }
+    
+    NSLog("[OpenClaw] LinkedIn request detected for: %@", name)
+    
+    // Call the LinkedIn finder skill via direct endpoint
+    return await callLinkedInFinder(name: name)
+  }
+  
+  /// Call the LinkedIn finder skill directly
+  private func callLinkedInFinder(name: String) async -> ToolResult {
+    guard let url = URL(string: "\(GeminiConfig.openClawHost):\(GeminiConfig.openClawPort)/skill/linkedin-finder") else {
+      return .failure("Invalid skill URL")
+    }
+    
+    var request = URLRequest(url: url)
+    request.httpMethod = "POST"
+    request.setValue("Bearer \(GeminiConfig.openClawGatewayToken)", forHTTPHeaderField: "Authorization")
+    request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+    
+    let body: [String: Any] = [
+      "name": name,
+      "send_to_telegram": true
+    ]
+    
+    do {
+      request.httpBody = try JSONSerialization.data(withJSONObject: body)
+      let (data, response) = try await session.data(for: request)
+      
+      guard let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 200 else {
+        let code = (response as? HTTPURLResponse)?.statusCode ?? 0
+        return .failure("Skill returned HTTP \(code)")
+      }
+      
+      if let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+         let url = json["url"] as? String {
+        return .success("Found LinkedIn profile for \(name): \(url)\n\nSent to Telegram ✓")
+      }
+      
+      let raw = String(data: data, encoding: .utf8) ?? "No result"
+      return .success(raw)
+    } catch {
+      return .failure("LinkedIn finder error: \(error.localizedDescription)")
+    }
+  }
+
   // MARK: - Agent Chat (session continuity via x-openclaw-session-key header)
 
   func delegateTask(
@@ -76,6 +157,14 @@ class OpenClawBridge: ObservableObject {
     toolName: String = "execute"
   ) async -> ToolResult {
     lastToolCallStatus = .executing(toolName)
+    
+    // Check for LinkedIn requests first
+    if let linkedInResult = await handleLinkedInRequest(task) {
+      lastToolCallStatus = .completed("linkedin-finder")
+      conversationHistory.append(["role": "user", "content": task])
+      conversationHistory.append(["role": "assistant", "content": linkedInResult.responseValue as? String ?? "LinkedIn search completed"])
+      return linkedInResult
+    }
 
     guard let url = URL(string: "\(GeminiConfig.openClawHost):\(GeminiConfig.openClawPort)/v1/chat/completions") else {
       lastToolCallStatus = .failed(toolName, "Invalid URL")
