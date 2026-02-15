@@ -3,6 +3,7 @@ import WebRTC
 
 enum SignalingMessage {
   case roomCreated(String)
+  case roomRejoined(String)
   case roomJoined
   case peerJoined
   case peerLeft
@@ -55,6 +56,10 @@ class SignalingClient {
 
   func joinRoom(code: String) {
     sendJSON(["type": "join", "room": code])
+  }
+
+  func rejoinRoom(code: String) {
+    sendJSON(["type": "rejoin", "room": code])
   }
 
   func send(sdp: RTCSessionDescription) {
@@ -135,6 +140,11 @@ class SignalingClient {
 
     case "room_joined":
       onMessageReceived?(.roomJoined)
+
+    case "room_rejoined":
+      if let room = json["room"] as? String {
+        onMessageReceived?(.roomRejoined(room))
+      }
 
     case "peer_joined":
       onMessageReceived?(.peerJoined)

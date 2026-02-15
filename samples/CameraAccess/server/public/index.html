@@ -208,7 +208,12 @@
         case 'peer_left':
           if (pc) { pc.close(); pc = null; }
           resetVideoElements();
-          setStatus('Stream ended', 'disconnected');
+          // Don't go back to join screen -- the iOS app may be backgrounded
+          // and will rejoin within the grace period. Stay in the room.
+          setStatus('Waiting for reconnect...', 'waiting');
+          document.getElementById('waiting-msg').style.display = 'block';
+          document.getElementById('waiting-msg').querySelector('p').textContent =
+            'Stream paused. Waiting for glasses to reconnect...';
           showControls(false);
           break;
 
@@ -237,12 +242,25 @@
             username: creds.username,
             credential: creds.credential
           });
-          console.log('TURN credentials loaded');
+          console.log('TURN credentials loaded:', JSON.stringify(creds.urls));
+        } else if (creds && creds.iceServers) {
+          for (const s of creds.iceServers) {
+            iceServers.push({ urls: s.urls, username: s.username, credential: s.credential });
+          }
+          // Log each TURN server with credential info for debugging
+          for (const s of creds.iceServers) {
+            const urls = Array.isArray(s.urls) ? s.urls : [s.urls];
+            console.log('TURN server:', urls[0], '| user:', s.username?.substring(0, 8) + '...', '| cred length:', s.credential?.length);
+          }
+          console.log('TURN credentials loaded:', creds.iceServers.length, 'servers');
+        } else {
+          console.log('TURN response format unexpected:', JSON.stringify(creds));
         }
       } catch (e) {
-        console.log('No TURN credentials, STUN only');
+        console.log('No TURN credentials, STUN only:', e.message);
       }
-      const config = { iceServers };
+      const config = { iceServers, iceCandidatePoolSize: 2 };
+      console.log('ICE servers config:', JSON.stringify(iceServers.map(s => s.urls)));
       pc = new RTCPeerConnection(config);
 
       // Get mic AND camera for bidirectional audio+video
@@ -270,32 +288,43 @@
       pc.ontrack = (e) => {
         if (e.streams && e.streams[0]) {
           remoteStream = e.streams[0];
-          showVideoLayout();
+          // Don't show PiP yet -- wait for ICE "connected" to ensure media is flowing
         }
       };
 
+      let candidateCounts = { host: 0, srflx: 0, relay: 0 };
       pc.onicecandidate = (e) => {
         if (e.candidate) {
           const c = e.candidate.candidate;
-          if (c.includes('relay')) console.log('ICE candidate: RELAY (TURN)');
-          else if (c.includes('srflx')) console.log('ICE candidate: STUN');
-          else if (c.includes('host')) console.log('ICE candidate: HOST');
+          if (c.includes('relay')) { candidateCounts.relay++; console.log('ICE candidate: RELAY (TURN)', c); }
+          else if (c.includes('srflx')) { candidateCounts.srflx++; console.log('ICE candidate: STUN (srflx)', c); }
+          else if (c.includes('host')) { candidateCounts.host++; }
           ws.send(JSON.stringify({
             type: 'candidate',
             candidate: e.candidate.candidate,
             sdpMid: e.candidate.sdpMid,
             sdpMLineIndex: e.candidate.sdpMLineIndex
           }));
+        } else {
+          console.log('ICE gathering complete. Candidates:', JSON.stringify(candidateCounts));
+          if (candidateCounts.relay === 0 && candidateCounts.srflx === 0) {
+            console.warn('WARNING: No STUN or TURN candidates. TURN credentials may be invalid or network is very restrictive.');
+          }
         }
       };
 
+      pc.onicegatheringstatechange = () => {
+        console.log('ICE gathering state:', pc.iceGatheringState);
+      };
+
       pc.oniceconnectionstatechange = () => {
-        console.log('ICE state:', pc.iceConnectionState);
+        console.log('ICE connection state:', pc.iceConnectionState);
         switch (pc.iceConnectionState) {
           case 'connected':
           case 'completed':
             setStatus('Live', 'connected');
             showControls(true);
+            if (remoteStream) showVideoLayout();
             break;
           case 'disconnected':
             setStatus('Reconnecting...', 'waiting');

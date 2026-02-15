@@ -24,7 +24,7 @@ enum WebRTCConfig {
       .replacingOccurrences(of: "ws://", with: "http://")
   }
 
-  /// Fetch TURN credentials from the signaling server (proxied from Cloudflare).
+  /// Fetch TURN credentials from the signaling server.
   /// Falls back to STUN-only if the fetch fails.
   static func fetchIceServers() async -> [RTCIceServer] {
     var servers = [RTCIceServer(urlStrings: stunServers)]
@@ -35,15 +35,28 @@ enum WebRTCConfig {
 
     do {
       let (data, _) = try await URLSession.shared.data(from: url)
-      if let json = try JSONSerialization.jsonObject(with: data) as? [String: Any],
-        let urls = json["urls"] as? [String],
-        let username = json["username"] as? String,
-        let credential = json["credential"] as? String
-      {
-        let turnServer = RTCIceServer(
-          urlStrings: urls, username: username, credential: credential)
-        servers.append(turnServer)
-        NSLog("[WebRTC] TURN credentials loaded (%d URLs)", urls.count)
+      if let json = try JSONSerialization.jsonObject(with: data) as? [String: Any] {
+        // Handle iceServers array format: { iceServers: [{urls, username, credential}, ...] }
+        if let iceServersArray = json["iceServers"] as? [[String: Any]] {
+          for entry in iceServersArray {
+            guard let urls = entry["urls"] as? [String],
+              let username = entry["username"] as? String,
+              let credential = entry["credential"] as? String
+            else { continue }
+            servers.append(
+              RTCIceServer(urlStrings: urls, username: username, credential: credential))
+          }
+          NSLog("[WebRTC] TURN credentials loaded (%d servers)", iceServersArray.count)
+        }
+        // Handle flat format: { urls, username, credential }
+        else if let urls = json["urls"] as? [String],
+          let username = json["username"] as? String,
+          let credential = json["credential"] as? String
+        {
+          servers.append(
+            RTCIceServer(urlStrings: urls, username: username, credential: credential))
+          NSLog("[WebRTC] TURN credentials loaded (%d URLs)", urls.count)
+        }
       }
     } catch {
       NSLog("[WebRTC] Failed to fetch TURN credentials: %@", error.localizedDescription)
